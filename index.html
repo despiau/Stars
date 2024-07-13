@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solar System Final Widescreen HD</title>
+    <title>Solar System Simulation</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
@@ -114,7 +114,7 @@
 
         function createBackgroundStars() {
             const starsGroup = document.getElementById('backgroundStars');
-            const starCount = Math.floor((window.innerWidth * window.innerHeight) / 1000);
+            const starCount = Math.floor((window.innerWidth * window.innerHeight) / 2000); // Reduce the number of stars
             for (let i = 0; i < starCount; i++) {
                 const star = document.createElementNS("http://www.w3.org/2000/svg", "circle");
                 star.setAttribute("cx", `${Math.random() * 100}%`);
@@ -135,7 +135,7 @@
 
         function createAsteroidBelt() {
             const asteroidBelt = document.getElementById('asteroidBelt');
-            for (let i = 0; i < 500; i++) {
+            for (let i = 0; i < 200; i++) { // Reduce the number of asteroids
                 const angle = Math.random() * 2 * Math.PI;
                 const distance = Math.random() * 20 + 200; // Between Mars and Jupiter
                 const x = 500 + distance * Math.cos(angle);
@@ -166,12 +166,12 @@
 
             const animate = document.createElementNS("http://www.w3.org/2000/svg", "animateMotion");
             animate.setAttribute("path", `M${startX},${startY} L${endX},${endY}`);
-            animate.setAttribute("dur", `${Math.random() * 3 + 2}s`);
+            animate.setAttribute("dur", `${Math.random() * 1.5 + 1}s`); // Reduce duration
             animate.setAttribute("repeatCount", "1");
             comet.appendChild(animate);
 
             cometsGroup.appendChild(comet);
-            setTimeout(() => cometsGroup.removeChild(comet), 5000);
+            setTimeout(() => cometsGroup.removeChild(comet), 2500); // Remove comet sooner
         }
 
         function createPlanetSystem(planet, x, y) {
@@ -254,7 +254,7 @@
             createAsteroidBelt();
             createSolarSystem();
             resizeSolarSystem();
-            setInterval(createComet, 200); // Create a comet every 200 milliseconds
+            setInterval(createComet, 2000); // Increase interval between comets
         });
 
         window.addEventListener('resize', function() {
