@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solar System Final Widescreen HD</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #000;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+        .planet {
+            fill: #8A2BE2;
+            filter: drop-shadow(0 0 5px #4B0082);
+        }
+        .moon {
+            fill: #4169E1;
+            filter: drop-shadow(0 0 3px #1E90FF);
+        }
+        .orbit {
+            fill: none;
+            stroke: #555;
+            stroke-width: 0.5;
+        }
+        .label {
+            fill: white;
+            font-size: 8px;
+            text-anchor: middle;
+            pointer-events: none;
+        }
+        .background-star {
+            fill: #FFF;
+        }
+        .asteroid {
+            fill: #8B4513;
+        }
+        .comet {
+            fill: #FFF;
+        }
+        .milky-way {
+            fill: url(#milkyWayGradient);
+            opacity: 0.2;
+        }
+        #solarSystemContainer {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        @keyframes rotateOrbit {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 0.2; }
+        }
+    </style>
+</head>
+<body class="relative flex items-center justify-center h-screen">
+    <svg id="background" class="fixed inset-0 w-full h-full">
+        <defs>
+            <radialGradient id="milkyWayGradient" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+                <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:0.5" />
+                <stop offset="100%" style="stop-color:#000000;stop-opacity:0" />
+            </radialGradient>
+        </defs>
+        <rect width="100%" height="100%" class="milky-way" />
+        <g id="backgroundStars"></g>
+    </svg>
+
+    <div id="solarSystemContainer">
+        <svg id="solarSystem" viewBox="0 0 1000 1000">
+            <g id="asteroidBelt"></g>
+            <g id="planets">
+                <circle cx="500" cy="500" r="15" fill="#FFD700" filter="drop-shadow(0 0 10px #FFA500)" /> <!-- Sun -->
+            </g>
+            <g id="comets"></g>
+        </svg>
+    </div>
+
+    <script>
+        const planets = [
+            { name: 'Mercury', radius: 60, orbitPeriod: 60, size: 3, moons: [] },
+            { name: 'Venus', radius: 100, orbitPeriod: 90, size: 4, moons: [] },
+            { name: 'Earth', radius: 140, orbitPeriod: 120, size: 4.5, moons: [{ name: 'Moon', distance: 10, size: 1, orbitPeriod: 15 }] },
+            { name: 'Mars', radius: 180, orbitPeriod: 150, size: 3.5, moons: [
+                { name: 'Phobos', distance: 8, size: 0.5, orbitPeriod: 9 },
+                { name: 'Deimos', distance: 10, size: 0.4, orbitPeriod: 12 }
+            ] },
+            { name: 'Jupiter', radius: 240, orbitPeriod: 180, size: 10, moons: [
+                { name: 'Io', distance: 15, size: 1.5, orbitPeriod: 12 },
+                { name: 'Europa', distance: 18, size: 1.2, orbitPeriod: 15 },
+                { name: 'Ganymede', distance: 21, size: 1.8, orbitPeriod: 18 },
+                { name: 'Callisto', distance: 24, size: 1.5, orbitPeriod: 21 }
+            ] },
+            { name: 'Saturn', radius: 300, orbitPeriod: 210, size: 9, moons: [
+                { name: 'Titan', distance: 18, size: 1.8, orbitPeriod: 15 },
+                { name: 'Enceladus', distance: 15, size: 0.8, orbitPeriod: 9 }
+            ] },
+            { name: 'Uranus', radius: 360, orbitPeriod: 240, size: 7, moons: [
+                { name: 'Miranda', distance: 12, size: 0.8, orbitPeriod: 9 },
+                { name: 'Titania', distance: 14, size: 1, orbitPeriod: 12 }
+            ] },
+            { name: 'Neptune', radius: 420, orbitPeriod: 270, size: 6.5, moons: [
+                { name: 'Triton', distance: 11, size: 1.2, orbitPeriod: 12 }
+            ] }
+        ];
+
+        function createBackgroundStars() {
+            const starsGroup = document.getElementById('backgroundStars');
+            const starCount = Math.floor((window.innerWidth * window.innerHeight) / 1000);
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                star.setAttribute("cx", `${Math.random() * 100}%`);
+                star.setAttribute("cy", `${Math.random() * 100}%`);
+                star.setAttribute("r", Math.random() * 1.2 + 0.3);
+                star.setAttribute("class", "background-star");
+                
+                const animate = document.createElementNS("http://www.w3.org/2000/svg", "animate");
+                animate.setAttribute("attributeName", "opacity");
+                animate.setAttribute("values", "0.8;0.2;0.8");
+                animate.setAttribute("dur", `${Math.random() * 3 + 2}s`);
+                animate.setAttribute("repeatCount", "indefinite");
+                star.appendChild(animate);
+                
+                starsGroup.appendChild(star);
+            }
+        }
+
+        function createAsteroidBelt() {
+            const asteroidBelt = document.getElementById('asteroidBelt');
+            for (let i = 0; i < 500; i++) {
+                const angle = Math.random() * 2 * Math.PI;
+                const distance = Math.random() * 20 + 200; // Between Mars and Jupiter
+                const x = 500 + distance * Math.cos(angle);
+                const y = 500 + distance * Math.sin(angle);
+                const asteroid = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                asteroid.setAttribute("cx", x);
+                asteroid.setAttribute("cy", y);
+                asteroid.setAttribute("r", Math.random() * 1 + 0.5);
+                asteroid.setAttribute("class", "asteroid");
+                asteroidBelt.appendChild(asteroid);
+            }
+        }
+
+        function createComet() {
+            const cometsGroup = document.getElementById('comets');
+            const comet = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            const angle = Math.random() * 2 * Math.PI;
+            const startRadius = 1000;
+            const endRadius = 100;
+            
+            const startX = 500 + startRadius * Math.cos(angle);
+            const startY = 500 + startRadius * Math.sin(angle);
+            const endX = 500 + endRadius * Math.cos(angle);
+            const endY = 500 + endRadius * Math.sin(angle);
+            
+            comet.setAttribute("r", Math.random() * 0.8 + 0.2);
+            comet.setAttribute("class", "comet");
+
+            const animate = document.createElementNS("http://www.w3.org/2000/svg", "animateMotion");
+            animate.setAttribute("path", `M${startX},${startY} L${endX},${endY}`);
+            animate.setAttribute("dur", `${Math.random() * 3 + 2}s`);
+            animate.setAttribute("repeatCount", "1");
+            comet.appendChild(animate);
+
+            cometsGroup.appendChild(comet);
+            setTimeout(() => cometsGroup.removeChild(comet), 5000);
+        }
+
+        function createPlanetSystem(planet, x, y) {
+            const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            group.style.animation = `rotateOrbit ${planet.orbitPeriod}s linear infinite`;
+            group.style.transformOrigin = "500px 500px";
+
+            const orbit = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            orbit.setAttribute("cx", "500");
+            orbit.setAttribute("cy", "500");
+            orbit.setAttribute("r", planet.radius);
+            orbit.setAttribute("class", "orbit");
+            group.appendChild(orbit);
+
+            const planetCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            planetCircle.setAttribute("cx", x);
+            planetCircle.setAttribute("cy", y);
+            planetCircle.setAttribute("r", planet.size);
+            planetCircle.setAttribute("class", "planet");
+            group.appendChild(planetCircle);
+
+            const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            label.textContent = planet.name;
+            label.setAttribute("x", x);
+            label.setAttribute("y", y - planet.size - 5);
+            label.setAttribute("class", "label");
+            group.appendChild(label);
+
+            planet.moons.forEach(moon => {
+                const moonGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                moonGroup.style.animation = `rotateOrbit ${moon.orbitPeriod}s linear infinite`;
+                moonGroup.style.transformOrigin = `${x}px ${y}px`;
+
+                const moonOrbit = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                moonOrbit.setAttribute("cx", x);
+                moonOrbit.setAttribute("cy", y);
+                moonOrbit.setAttribute("r", moon.distance);
+                moonOrbit.setAttribute("class", "orbit");
+                moonGroup.appendChild(moonOrbit);
+
+                const moonCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                moonCircle.setAttribute("cx", x + moon.distance);
+                moonCircle.setAttribute("cy", y);
+                moonCircle.setAttribute("r", moon.size);
+                moonCircle.setAttribute("class", "moon");
+                moonGroup.appendChild(moonCircle);
+
+                const moonLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                moonLabel.textContent = moon.name;
+                moonLabel.setAttribute("x", x + moon.distance);
+                moonLabel.setAttribute("y", y - moon.size - 3);
+                moonLabel.setAttribute("class", "label");
+                moonGroup.appendChild(moonLabel);
+
+                group.appendChild(moonGroup);
+            });
+
+            return group;
+        }
+
+        function createSolarSystem() {
+            const solarSystem = document.getElementById('planets');
+            planets.forEach(planet => {
+                const x = 500 + planet.radius;
+                const y = 500;
+                const planetSystem = createPlanetSystem(planet, x, y);
+                solarSystem.appendChild(planetSystem);
+            });
+        }
+
+        function resizeSolarSystem() {
+            const container = document.getElementById('solarSystemContainer');
+            const size = Math.min(window.innerWidth, window.innerHeight) * 0.86; // 7% margin on each side
+            container.style.width = `${size}px`;
+            container.style.height = `${size}px`;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            createBackgroundStars();
+            createAsteroidBelt();
+            createSolarSystem();
+            resizeSolarSystem();
+            setInterval(createComet, 200); // Create a comet every 200 milliseconds
+        });
+
+        window.addEventListener('resize', function() {
+            document.getElementById('backgroundStars').innerHTML = '';
+            createBackgroundStars();
+            resizeSolarSystem();
+        });
+    </script>
+</body>
+</html>
